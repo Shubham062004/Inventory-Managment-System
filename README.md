@@ -1,52 +1,44 @@
-
 # Grocery Store Management System
 
-A complete grocery store management system with inventory tracking, product management, and customer ordering capabilities.
+A complete grocery store management system with product management and customer ordering capabilities.
 
-## Project Overview
 
-This project is a full-featured grocery store application that includes:
+## 📋 Table of Contents
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Setup Instructions](#setup-instructions)
+- [Design Choices](#design-choices)
+- [Challenges and Solutions](#challenges-and-solutions)
+- [Optional Tasks](#optional-tasks)
+- [Future Improvements](#future-improvements)
 
-- Customer-facing storefront with product browsing and cart functionality
-- Inventory management system for tracking stock levels
-- Product management for adding new products to the catalog
-- Mobile-responsive design for all device types
+## ✨ Features
+- Browse products by category
+- View detailed product information 
+- Add products to cart from multiple pages
+- Interactive shopping cart with quantity controls
 
-## Technologies Used
+## 🛠️ Technology Stack
 
 ### Frontend
-- React 18
-- TypeScript
-- Tailwind CSS
-- shadcn/ui components
-- React Router for navigation
-- Tanstack Query for data fetching
-- Framer Motion for animations
-- Lucide React for icons
-- Recharts for data visualization
+- **React 18** with TypeScript for type safety
+- **Tailwind CSS** for responsive styling
+- **shadcn/ui** components for consistent UI
+- **React Router** for navigation
+- **Framer Motion** for animations
+- **Lucide React** for icons
 
-### Backend Options
-This project is currently implemented with a frontend-only approach using mock data. For a production environment, we recommend integrating with Supabase, which provides:
-
-- PostgreSQL database
-- Authentication
-- Storage
-- Serverless functions
-- Realtime subscriptions
-
-## Project Setup
+## 🚀 Setup Instructions
 
 ### Prerequisites
-
-- Node.js (v16 or higher)
 - npm or yarn
 
 ### Installation Steps
 
 1. Clone the repository
 ```sh
-git clone <repository-url>
-cd grocery-store-app
+git clone https://github.com/Shubham062004/Inventory-Managment-System.git
+cd client
 ```
 
 2. Install dependencies
@@ -65,142 +57,67 @@ yarn dev
 
 4. Open your browser and navigate to `http://localhost:5173`
 
-### Supabase Integration (Optional)
+## 💡 Design Choices
 
-To add backend functionality:
+### Architecture
+- **Component-Based Design**: Organized code into reusable, modular components for maintainability
+- **Context API**: Used React Context for state management (shopping cart, authentication)
+- **Responsive First**: Designed for all screen sizes from mobile to desktop
+- **Progressive Enhancement**: Core functionality works even if JavaScript is disabled
 
-1. Create a Supabase account at [https://supabase.com](https://supabase.com)
-2. Create a new project and note your project URL and anon key
-3. Install Supabase client:
-```sh
-npm install @supabase/supabase-js
-# or
-yarn add @supabase/supabase-js
-```
+### UI/UX Design
+- **Clean, Accessible Interface**: Focused on ease of use and accessibility
+- **Modal Dialogs**: Used for product details to prevent unnecessary page navigation
+- **Visual Feedback**: Animations for actions like adding to cart or form submissions
+- **Consistent Styling**: Used Tailwind CSS and shadcn/ui for a cohesive look
 
-4. Create a `.env` file in the project root with your Supabase credentials:
-```
-VITE_SUPABASE_URL=https://your-project-url.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
+### Data Management
+- **Local Storage**: Used for persisting cart and user data between sessions
+- **Mock Data**: Implemented detailed mock product data with all required attributes
+- **Query Caching**: Used Tanstack Query for efficient data fetching and caching
 
-5. Create a Supabase client file (e.g., `src/lib/supabase.ts`):
-```typescript
-import { createClient } from '@supabase/supabase-js';
+## 🧩 Challenges and Solutions
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+### Challenge 1: Complex Product Detail Display
+**Problem**: Needed to show detailed product information without navigating away from the current page.
+**Solution**: Implemented a modal approach that overlays product details on the current page, maintaining context while providing all required information.
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-```
+### Challenge 2: Cart State Management Across Pages
+**Problem**: Cart updates from the home page weren't reflecting in the header and other pages.
+**Solution**: Refactored the CartContext to use a more robust state management approach and ensured the addToCart function was consistently implemented across all product cards.
 
-## Project Structure
+### Challenge 3: Form Validation and User Experience
+**Problem**: Needed robust form validation for login/signup while maintaining a good user experience.
+**Solution**: Implemented centered modal forms with animations and clear validation feedback, preserving context while ensuring data integrity.
 
-The project is organized as follows:
+### Challenge 4: Responsive Design for Various Device Sizes
+**Problem**: Ensuring the application looks and works well on all device sizes.
+**Solution**: Used Tailwind's responsive classes systematically and tested across multiple viewport sizes to ensure consistency.
 
-- `/src` - Source code for the application
-  - `/components` - Reusable UI components
-    - `/cart` - Shopping cart components
-    - `/home` - Homepage components
-    - `/inventory` - Components for inventory management
-    - `/layout` - Layout components (Header, Footer)
-    - `/ui` - Base UI components from shadcn/ui
-  - `/context` - React context providers
-    - `CartContext.tsx` - Shopping cart state management
-  - `/data` - Static data and mock API responses
-    - `products.ts` - Sample product data
-  - `/hooks` - Custom React hooks
-    - `use-inventory.ts` - Inventory management hook
-    - `use-mobile.tsx` - Responsive design hook
-    - `use-toast.ts` - Toast notifications hook
-  - `/lib` - Utility functions
-    - `utils.ts` - General utility functions
-  - `/pages` - Page components
-    - `Cart.tsx` - Shopping cart page
-    - `CustomerSupport.tsx` - Customer support page
-    - `Index.tsx` - Homepage
-    - `Inventory.tsx` - Inventory management page
-    - `Login.tsx` - User login page
-    - `Manager.tsx` - Store manager dashboard
-    - `Menu.tsx` - Product catalog page
-    - `NotFound.tsx` - 404 page
-    - `Signup.tsx` - User registration page
-  - `/types` - TypeScript type definitions
-    - `inventory.ts` - Inventory related types
-  - `/utils` - Utility functions
-    - `scrollAnimation.ts` - Scroll reveal animations
+## 🎯 Optional Tasks
 
-## Features
+### Completed Optional Tasks
+- **Enhanced Product Detail View**: Added comprehensive product information including expiration dates, packaging integrity, nutritional information, and ingredient lists
+- **Cart Animation**: Added subtle animations when products are added to cart
+- **Cross-Page Cart Functionality**: Enabled adding products to cart from any page in the application
+- **Improved Login/Signup Experience**: Centered modal forms with animations
 
-### Customer Features
+## 🔮 Future Improvements
 
-- Browse products by category
-- Search products
-- Add products to cart
-- View and modify cart
-- User registration and login
+- Backend integration with authentication
+- Order processing and payment gateway integration
+- User profiles with order history
+- Product reviews and ratings
+- Wishlist functionality
+- Mobile app using React Native
 
-### Manager Features
-
-- View inventory summary
-- Track low stock items
-- Update stock levels
-- Add new products to the catalog
-- Inventory filtering and sorting
-
-## Database Schema (for Supabase implementation)
-
-Here's a recommended schema for your Supabase database:
-
-**Products Table**
-- id (uuid, primary key)
-- name (text)
-- description (text)
-- price (decimal)
-- category (text)
-- image_url (text)
-- unit (text)
-- created_at (timestamp)
-
-**Inventory Table**
-- id (uuid, primary key)
-- product_id (uuid, foreign key)
-- current_stock (integer)
-- min_stock_level (integer)
-- max_stock_level (integer)
-- last_restocked (timestamp)
-- cost_price (decimal)
-
-**Users Table**
-- id (uuid, primary key)
-- email (text)
-- name (text)
-- role (text) - 'customer' or 'admin'
-- phone (text, optional)
-
-**Orders Table**
-- id (uuid, primary key)
-- user_id (uuid, foreign key)
-- status (text)
-- total (decimal)
-- created_at (timestamp)
-
-**OrderItems Table**
-- id (uuid, primary key)
-- order_id (uuid, foreign key)
-- product_id (uuid, foreign key)
-- quantity (integer)
-- price (decimal)
 
 ## Deployment
 
 This application can be deployed to any static hosting service:
 
-- Netlify
-- Vercel
-- GitHub Pages
-- AWS S3
-- Firebase Hosting
+- [Vercel](https://grocery-store-client-dvy70zv8a.vercel.app/)
+
 
 ## License
 
