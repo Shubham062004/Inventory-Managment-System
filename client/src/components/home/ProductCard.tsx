@@ -1,28 +1,32 @@
+
 import React, { useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useCart } from '@/context/CartContext';
+import { Link, useLocation } from 'react-router-dom';
+import { Plus, Minus, Eye } from 'lucide-react';
+import { useCart, Product } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import ProductDetailModal from '@/components/product/ProductDetailModal';
-import { ProductDetails } from '@/data/products';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import ProductDetailModal from '../product/ProductDetailModal';
 
 interface ProductCardProps {
-  product: ProductDetails;
+  product: Product;
+  className?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard = ({ product, className }: ProductCardProps) => {
   const { addToCart, items, updateQuantity, removeFromCart } = useCart();
   const { toast } = useToast();
+  const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
+  
   // Find the current item in the cart (if it exists)
   const cartItem = items.find(item => item.product.id === product.id);
   const quantity = cartItem ? cartItem.quantity : 0;
-
+  
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Fix: Prevent opening modal on button click
-
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (quantity === 0) {
       addToCart(product);
       toast({
@@ -39,10 +43,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       });
     }
   };
-
+  
   const handleDecreaseQuantity = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Fix: Prevent opening modal on button click
-
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (quantity === 1) {
       removeFromCart(product.id);
       toast({
@@ -59,88 +64,110 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       });
     }
   };
-
-  const openModal = () => {
-    setIsModalOpen(true);
+  
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // On homepage and product listings, open modal
+    if (location.pathname === '/' || location.pathname === '/menu') {
+      setIsModalOpen(true);
+    } else {
+      // On other pages, navigate to product detail page
+      window.location.href = `/product/${product.id}`;
+    }
   };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
+  
   return (
     <>
       <div 
-        onClick={openModal} 
-        className="group relative bg-white dark:bg-gray-800 rounded-xl border border-border dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px] animate-fade-in food-card block cursor-pointer"
+        className={cn(
+          "food-card group relative flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:shadow-md dark:border-gray-800",
+          className
+        )}
+        onClick={handleCardClick}
       >
-        {/* Product image */}
-        <div className="aspect-square overflow-hidden bg-secondary/30 dark:bg-gray-700/30">
+        <div 
+          className="relative aspect-square overflow-hidden bg-secondary/30 dark:bg-gray-800/50"
+        >
           <img 
-            src={imageError ? "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b" : product.image}
-            alt={product.name}
-            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 ease-out"
+            src={product.image} 
+            alt={product.name} 
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
-            onError={() => setImageError(true)}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b";
+            }}
           />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="flex items-center gap-1"
+              onClick={handleCardClick}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>View</span>
+            </Button>
+          </div>
         </div>
-
-        {/* Product info */}
-        <div className="p-4">
-          <div className="text-xs text-muted-foreground dark:text-gray-400 mb-1 font-medium">{product.unit}</div>
-          <h3 className="font-display font-medium mb-2 text-shorten dark:text-white">{product.name}</h3>
-          <div className="flex items-center justify-between">
-            <span className="font-semibold dark:text-white">₹{product.price.toFixed(2)}</span>
-
+        
+        <div className="flex flex-col p-3">
+          <div className="mb-1 text-xs text-muted-foreground">{product.category}</div>
+          <h3 className="font-medium line-clamp-1">{product.name}</h3>
+          <div className="text-xs text-muted-foreground mb-2">{product.unit}</div>
+          
+          <div className="mt-auto flex items-center justify-between">
+            <div className="font-semibold">
+              ₹{product.price.toFixed(2)}
+            </div>
+            
             {quantity === 0 ? (
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="rounded-full h-9 w-9 p-0 bg-blink dark:bg-blink-600 text-white hover:bg-blink-600 dark:hover:bg-blink-700 transform transition-all duration-200 hover:scale-110 active:scale-90"
+                size="icon" 
+                className="h-8 w-8 rounded-full hover:bg-blink hover:text-white"
                 onClick={handleAddToCart}
-                aria-label={`Add ${product.name} to cart`}
               >
-                <Plus size={18} className="transition-transform duration-200 group-hover:rotate-90" />
+                <Plus className="h-4 w-4" />
               </Button>
             ) : (
-              <div className="flex items-center bg-background dark:bg-gray-700 border border-border dark:border-gray-600 rounded-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-full">
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-8 w-8 rounded-l-full bg-background hover:bg-secondary dark:bg-gray-700 dark:hover:bg-gray-600 text-foreground dark:text-white border-r border-border dark:border-gray-600"
+                  className="h-7 w-7 rounded-full"
                   onClick={handleDecreaseQuantity}
-                  aria-label={`Decrease quantity of ${product.name}`}
                 >
-                  <Minus size={14} />
+                  <Minus className="h-3 w-3" />
                 </Button>
-
-                <span className="w-8 text-center text-sm font-medium">
+                
+                <span className="w-6 text-center text-xs font-medium">
                   {quantity}
                 </span>
-
+                
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-8 w-8 rounded-r-full bg-background hover:bg-secondary dark:bg-gray-700 dark:hover:bg-gray-600 text-foreground dark:text-white border-l border-border dark:border-gray-600"
+                  className="h-7 w-7 rounded-full"
                   onClick={handleAddToCart}
-                  aria-label={`Increase quantity of ${product.name}`}
                 >
-                  <Plus size={14} />
+                  <Plus className="h-3 w-3" />
                 </Button>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Product Detail Modal */}
+      
       <ProductDetailModal 
-        product={product}
-        isOpen={isModalOpen}
-        onClose={closeModal}
+        product={product} 
+        open={isModalOpen} 
+        onOpenChange={setIsModalOpen} 
       />
     </>
   );
 };
 
-export default ProductCard;
+export default ProductCard

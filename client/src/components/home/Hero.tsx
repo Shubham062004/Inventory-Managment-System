@@ -13,8 +13,6 @@ const Hero: React.FC = () => {
       {/* Background pattern */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-blink/10 to-blink-600/5 dark:from-blink-900/30 dark:to-blink-800/10" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1584736286279-5d6e7770bede?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20 dark:opacity-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,white_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_20%,#0f172a_100%)]" />
       </div>
 
       <div className="container mx-auto px-4 py-20 md:py-32 relative z-10">

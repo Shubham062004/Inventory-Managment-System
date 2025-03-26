@@ -7,6 +7,13 @@ export interface Product {
   image: string;
   category: string;
   unit: string;
+  description?: string;
+  expiration?: string;
+  ingredients?: string;
+  nutritionalInfo?: Record<string, string>;
+  dietaryInfo?: string;
+  packagingInfo?: string;
+  storageInstructions?: string;
 }
 
 interface CartItem {
@@ -28,6 +35,8 @@ interface CartContextType {
   qualifiesForFreeDelivery: boolean;
   deliveryFee: number;
   amountAwayFromFreeDelivery: number;
+  shippingAddress: string;
+  paymentMethod: string;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -45,6 +54,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [qualifiesForFreeDelivery, setQualifiesForFreeDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(STANDARD_DELIVERY_FEE);
   const [amountAwayFromFreeDelivery, setAmountAwayFromFreeDelivery] = useState(DELIVERY_THRESHOLD);
+  const [shippingAddress, setShippingAddress] = useState('123 Main St, Mumbai, India');
+  const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
 
   // Load cart from localStorage on initial mount
   useEffect(() => {
@@ -65,8 +76,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to save cart to localStorage:', error);
     }
-    
-    // Calculate totals
+  }, [items]);
+  
+  // Calculate totals whenever cart items change
+  useEffect(() => {
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
     const price = items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
     
@@ -96,10 +109,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return [...prevItems, { product, quantity: 1 }];
       }
     });
-    
-    // When adding item to cart, consider opening the cart
-    // Uncomment the next line if you want the cart to open automatically when adding items
-    // setIsCartOpen(true); 
   };
 
   const removeFromCart = (productId: string) => {
@@ -147,7 +156,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       totalPrice,
       qualifiesForFreeDelivery,
       deliveryFee,
-      amountAwayFromFreeDelivery
+      amountAwayFromFreeDelivery,
+      shippingAddress,
+      paymentMethod
     }}>
       {children}
     </CartContext.Provider>

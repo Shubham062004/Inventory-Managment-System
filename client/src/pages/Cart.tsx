@@ -1,55 +1,47 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowLeft, Trash2, Plus, Minus, Check } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+// import React from 'react';
+// import { Link, useNavigate } from 'react-router-dom';
+// import { ShoppingBag, ArrowLeft, Trash2, Plus, Minus, Check } from 'lucide-react';
+// import { useCart } from '@/context/CartContext';
+// import { Button } from '@/components/ui/button';
+// import { useToast } from '@/hooks/use-toast';
+// import Header from '@/components/layout/Header';
+// import Footer from '@/components/layout/Footer';
+
 
 
 // const Cart = () => {
 //   const navigate = useNavigate();
-//   const { 
-//     items, 
-//     updateQuantity, 
-//     removeFromCart, 
+//   const {
+//     items,
+//     updateQuantity,
+//     removeFromCart,
 //     clearCart,
 //     totalPrice,
 //     deliveryFee,
 //     qualifiesForFreeDelivery,
-//     amountAwayFromFreeDelivery 
+//     amountAwayFromFreeDelivery,
+
 //   } = useCart();
 //   const { toast } = useToast();
 
-//   const handleCompleteOrder = () => {
-//     // Save current order to local storage with timestamp
-//     const order = {
-//       id: `order-${Date.now()}`,
+//   const handleOrderComplete = () => {
+//     // Generate a fake order receipt and save to localStorage
+//     const orderDetails = {
+//       id: `ORD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
 //       items: items,
-//       total: totalPrice + deliveryFee,
-//       subtotal: totalPrice,
-//       deliveryFee: deliveryFee,
-//       date: new Date().toISOString(),
-//       status: 'completed'
+//       total: items.reduce((total, item) => total + item.product.price * item.quantity, 0),
+//       date: new Date().toLocaleDateString('en-US', {
+//         year: 'numeric',
+//         month: 'long',
+//         day: 'numeric',
+//       }),
 //     };
 
-//     const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-//     existingOrders.push(order);
-//     localStorage.setItem('orders', JSON.stringify(existingOrders));
+//     localStorage.setItem('last-order', JSON.stringify(orderDetails));
 
-//     // Clear cart
+//     // Clear the cart and navigate to order confirmation
 //     clearCart();
-
-//     // Show success toast
-//     toast({
-//       title: "Order Completed",
-//       description: "Your order has been successfully placed!",
-//       duration: 5000,
-//     });
-
-//     // Navigate to home page
-//     navigate('/');
+//     navigate('/order-confirmation');
 //   };
 
 //   if (items.length === 0) {
@@ -58,10 +50,10 @@ import Footer from '@/components/layout/Footer';
 //         <Header />
 //         <main className="container mx-auto pt-24 pb-12 px-4 min-h-[80vh] flex flex-col items-center justify-center">
 //           <div className="max-w-md mx-auto text-center">
-//             <ShoppingBag size={64} className="mx-auto text-muted-foreground mb-6" />
+//             {/* <ShoppingBag size={64} className="mx-auto text-muted-foreground mb-6" /> */}
 //             <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
 //             <p className="text-muted-foreground mb-8">Looks like you haven't added anything to your cart yet.</p>
-//             <Link to="/menu">
+//             <Link to="/">
 //               <Button className="bg-blink hover:bg-blink-600">Continue Shopping</Button>
 //             </Link>
 //           </div>
@@ -87,11 +79,10 @@ import Footer from '@/components/layout/Footer';
 //           </div>
 
 //           {/* Free delivery notice */}
-//           <div className={`p-4 mb-6 rounded-lg text-sm flex items-center gap-2 ${
-//             qualifiesForFreeDelivery 
-//               ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+//           <div className={`p-4 mb-6 rounded-lg text-sm flex items-center gap-2 ${qualifiesForFreeDelivery
+//               ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
 //               : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-//           }`}>
+//             }`}>
 //             {qualifiesForFreeDelivery ? (
 //               <Check size={18} className="flex-shrink-0" />
 //             ) : (
@@ -115,9 +106,9 @@ import Footer from '@/components/layout/Footer';
 //                     <li key={item.product.id} className="p-4 flex gap-4">
 //                       {/* Product image */}
 //                       <div className="h-20 w-20 bg-secondary/30 dark:bg-gray-700/30 rounded-md overflow-hidden flex-shrink-0">
-//                         <img 
-//                           src={item.product.image} 
-//                           alt={item.product.name} 
+//                         <img
+//                           src={item.product.image}
+//                           alt={item.product.name}
 //                           className="h-full w-full object-cover"
 //                           onError={(e) => {
 //                             const target = e.target as HTMLImageElement;
@@ -137,18 +128,18 @@ import Footer from '@/components/layout/Footer';
 //                           <div className="flex items-center gap-4">
 //                             {/* Quantity controls */}
 //                             <div className="flex items-center border rounded-full shadow-sm">
-//                               <Button 
-//                                 variant="ghost" 
-//                                 size="sm" 
+//                               <Button
+//                                 variant="ghost"
+//                                 size="sm"
 //                                 className="h-8 w-8 p-0 rounded-full text-muted-foreground"
 //                                 onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
 //                               >
 //                                 <Minus size={16} />
 //                               </Button>
 //                               <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-//                               <Button 
-//                                 variant="ghost" 
-//                                 size="sm" 
+//                               <Button
+//                                 variant="ghost"
+//                                 size="sm"
 //                                 className="h-8 w-8 p-0 rounded-full text-muted-foreground"
 //                                 onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
 //                               >
@@ -157,9 +148,9 @@ import Footer from '@/components/layout/Footer';
 //                             </div>
 
 //                             {/* Remove button */}
-//                             <Button 
-//                               variant="ghost" 
-//                               size="sm" 
+//                             <Button
+//                               variant="ghost"
+//                               size="sm"
 //                               onClick={() => removeFromCart(item.product.id)}
 //                               className="h-8 w-8 p-0 rounded-full text-destructive hover:bg-destructive/10"
 //                             >
@@ -196,9 +187,16 @@ import Footer from '@/components/layout/Footer';
 //                       <span className="font-semibold">Total</span>
 //                       <span className="font-bold">₹{(totalPrice + deliveryFee).toFixed(2)}</span>
 //                     </div>
-//                     <Button 
+//                     {/* <Button 
+//                       className="w-full bg-blink hover:bg-blink-600 text-white" 
+//                       // disabled={isLoading}
+//                       onClick={handleOrderComplete}
+//                     >
+//                       {isLoading ? "Processing..." : "Complete Order"}
+//                     </Button> */}
+//                     <Button
 //                       className="w-full bg-blink hover:bg-blink-600 text-white"
-//                       onClick={handleCompleteOrder}
+//                       onClick={handleOrderComplete}
 //                     >
 //                       Complete Order
 //                     </Button>
@@ -218,25 +216,35 @@ import Footer from '@/components/layout/Footer';
 
 
 
-
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useCart } from '@/context/CartContext';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import { ShoppingBag, ArrowLeft, Check, Plus, Minus, Trash2 } from 'lucide-react';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const {
-    items,
-    updateQuantity,
-    removeFromCart,
+  const { 
+    items, 
+    updateQuantity, 
+    removeFromCart, 
     clearCart,
     totalPrice,
     deliveryFee,
     qualifiesForFreeDelivery,
     amountAwayFromFreeDelivery,
-
+    shippingAddress,
+    paymentMethod
   } = useCart();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleOrderComplete = () => {
-    // Generate a fake order receipt and save to localStorage
+    setIsLoading(true);
+    
     const orderDetails = {
       id: `ORD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
       items: items,
@@ -246,13 +254,17 @@ const Cart = () => {
         month: 'long',
         day: 'numeric',
       }),
+      address: shippingAddress,
+      paymentMethod: paymentMethod,
     };
-
+    
     localStorage.setItem('last-order', JSON.stringify(orderDetails));
-
-    // Clear the cart and navigate to order confirmation
-    clearCart();
-    navigate('/order-confirmation');
+    
+    setTimeout(() => {
+      clearCart();
+      setIsLoading(false);
+      navigate('/order-confirmation');
+    }, 1000);
   };
 
   if (items.length === 0) {
@@ -261,10 +273,10 @@ const Cart = () => {
         <Header />
         <main className="container mx-auto pt-24 pb-12 px-4 min-h-[80vh] flex flex-col items-center justify-center">
           <div className="max-w-md mx-auto text-center">
-            {/* <ShoppingBag size={64} className="mx-auto text-muted-foreground mb-6" /> */}
+            <ShoppingBag size={64} className="mx-auto text-muted-foreground mb-6" />
             <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
             <p className="text-muted-foreground mb-8">Looks like you haven't added anything to your cart yet.</p>
-            <Link to="/">
+            <Link to="/menu">
               <Button className="bg-blink hover:bg-blink-600">Continue Shopping</Button>
             </Link>
           </div>
@@ -289,11 +301,11 @@ const Cart = () => {
             <h1 className="text-2xl font-bold">Shopping Cart</h1>
           </div>
 
-          {/* Free delivery notice */}
-          <div className={`p-4 mb-6 rounded-lg text-sm flex items-center gap-2 ${qualifiesForFreeDelivery
-              ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+          <div className={`p-4 mb-6 rounded-lg text-sm flex items-center gap-2 ${
+            qualifiesForFreeDelivery 
+              ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
               : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-            }`}>
+          }`}>
             {qualifiesForFreeDelivery ? (
               <Check size={18} className="flex-shrink-0" />
             ) : (
@@ -315,11 +327,10 @@ const Cart = () => {
                 <ul className="divide-y divide-border">
                   {items.map(item => (
                     <li key={item.product.id} className="p-4 flex gap-4">
-                      {/* Product image */}
                       <div className="h-20 w-20 bg-secondary/30 dark:bg-gray-700/30 rounded-md overflow-hidden flex-shrink-0">
-                        <img
-                          src={item.product.image}
-                          alt={item.product.name}
+                        <img 
+                          src={item.product.image} 
+                          alt={item.product.name} 
                           className="h-full w-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -328,40 +339,37 @@ const Cart = () => {
                           }}
                         />
                       </div>
-
-                      {/* Product details */}
+                      
                       <div className="flex-grow">
                         <h3 className="font-medium">{item.product.name}</h3>
                         <p className="text-xs text-muted-foreground mb-2">{item.product.unit}</p>
                         <div className="flex items-center justify-between">
                           <span className="font-semibold">₹{(item.product.price * item.quantity).toFixed(2)}</span>
-
+                          
                           <div className="flex items-center gap-4">
-                            {/* Quantity controls */}
                             <div className="flex items-center border rounded-full shadow-sm">
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
                                 className="h-8 w-8 p-0 rounded-full text-muted-foreground"
                                 onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                               >
                                 <Minus size={16} />
                               </Button>
                               <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
                                 className="h-8 w-8 p-0 rounded-full text-muted-foreground"
                                 onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                               >
                                 <Plus size={16} />
                               </Button>
                             </div>
-
-                            {/* Remove button */}
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
                               onClick={() => removeFromCart(item.product.id)}
                               className="h-8 w-8 p-0 rounded-full text-destructive hover:bg-destructive/10"
                             >
@@ -375,8 +383,7 @@ const Cart = () => {
                 </ul>
               </div>
             </div>
-
-            {/* Order summary */}
+            
             <div className="col-span-1">
               <div className="bg-card rounded-lg border border-border shadow-sm sticky top-24">
                 <div className="p-4 border-b border-border">
@@ -398,18 +405,12 @@ const Cart = () => {
                       <span className="font-semibold">Total</span>
                       <span className="font-bold">₹{(totalPrice + deliveryFee).toFixed(2)}</span>
                     </div>
-                    {/* <Button 
+                    <Button 
                       className="w-full bg-blink hover:bg-blink-600 text-white" 
-                      // disabled={isLoading}
+                      disabled={isLoading}
                       onClick={handleOrderComplete}
                     >
                       {isLoading ? "Processing..." : "Complete Order"}
-                    </Button> */}
-                    <Button
-                      className="w-full bg-blink hover:bg-blink-600 text-white"
-                      onClick={handleOrderComplete}
-                    >
-                      Complete Order
                     </Button>
                   </div>
                 </div>
