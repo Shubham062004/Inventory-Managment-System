@@ -117,7 +117,7 @@ const Login = () => {
               </form>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
-              <div className="text-sm text-center w-full text-muted-foreground w-full">
+              <div className="text-sm text-center text-muted-foreground w-full">
                 Don't have an account?{" "}
                 <Link to="/signup" className="text-primary hover:underline">
                   Sign up
