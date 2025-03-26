@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Plus, Minus, Eye } from 'lucide-react';
@@ -26,40 +25,19 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (quantity === 0) {
-      addToCart(product);
-      toast({
-        title: "Added to cart",
-        description: `${product.name} has been added to your cart.`,
-        duration: 3000,
-      });
-    } else {
-      updateQuantity(product.id, quantity + 1);
-      toast({
-        title: "Updated quantity",
-        description: `${product.name} quantity updated to ${quantity + 1}.`,
-        duration: 2000,
-      });
-    }
+    addToCart(product);
   };
-  
+
   const handleDecreaseQuantity = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (quantity === 1) {
+    if (quantity > 1) {
+      updateQuantity(product.id, quantity - 1);
+    } else {
       removeFromCart(product.id);
       toast({
         title: "Removed from cart",
         description: `${product.name} has been removed from your cart.`,
-        duration: 2000,
-      });
-    } else if (quantity > 0) {
-      updateQuantity(product.id, quantity - 1);
-      toast({
-        title: "Updated quantity",
-        description: `${product.name} quantity updated to ${quantity - 1}.`,
         duration: 2000,
       });
     }
@@ -67,12 +45,9 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   
   const handleCardClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    
-    // On homepage and product listings, open modal
     if (location.pathname === '/' || location.pathname === '/menu') {
       setIsModalOpen(true);
     } else {
-      // On other pages, navigate to product detail page
       window.location.href = `/product/${product.id}`;
     }
   };
@@ -86,9 +61,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         )}
         onClick={handleCardClick}
       >
-        <div 
-          className="relative aspect-square overflow-hidden bg-secondary/30 dark:bg-gray-800/50"
-        >
+        <div className="relative aspect-square overflow-hidden bg-secondary/30 dark:bg-gray-800/50">
           <img 
             src={product.image} 
             alt={product.name} 
@@ -101,12 +74,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
             }}
           />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="flex items-center gap-1"
-              onClick={handleCardClick}
-            >
+            <Button size="sm" variant="secondary" className="flex items-center gap-1" onClick={handleCardClick}>
               <Eye className="h-3.5 w-3.5" />
               <span>View</span>
             </Button>
@@ -119,10 +87,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           <div className="text-xs text-muted-foreground mb-2">{product.unit}</div>
           
           <div className="mt-auto flex items-center justify-between">
-            <div className="font-semibold">
-              ₹{product.price.toFixed(2)}
-            </div>
-            
+            <div className="font-semibold">₹{product.price.toFixed(2)}</div>
             {quantity === 0 ? (
               <Button 
                 variant="ghost" 
@@ -134,25 +99,11 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
               </Button>
             ) : (
               <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-full">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-7 w-7 rounded-full"
-                  onClick={handleDecreaseQuantity}
-                >
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={handleDecreaseQuantity}>
                   <Minus className="h-3 w-3" />
                 </Button>
-                
-                <span className="w-6 text-center text-xs font-medium">
-                  {quantity}
-                </span>
-                
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-7 w-7 rounded-full"
-                  onClick={handleAddToCart}
-                >
+                <span className="w-6 text-center text-xs font-medium">{quantity}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={handleAddToCart}>
                   <Plus className="h-3 w-3" />
                 </Button>
               </div>
@@ -160,14 +111,9 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           </div>
         </div>
       </div>
-      
-      <ProductDetailModal 
-        product={product} 
-        open={isModalOpen} 
-        onOpenChange={setIsModalOpen} 
-      />
+      <ProductDetailModal product={product} open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 };
 
-export default ProductCard
+export default ProductCard;

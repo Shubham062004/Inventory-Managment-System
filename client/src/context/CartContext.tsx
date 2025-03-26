@@ -62,7 +62,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const savedCart = localStorage.getItem(CART_STORAGE_KEY);
       if (savedCart) {
-        setItems(JSON.parse(savedCart));
+        setItems(JSON.parse(savedCart) as CartItem[]);
       }
     } catch (error) {
       console.error('Failed to load cart from localStorage:', error);
@@ -77,15 +77,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Failed to save cart to localStorage:', error);
     }
   }, [items]);
-  
+
   // Calculate totals whenever cart items change
   useEffect(() => {
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-    const price = items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-    
+    const price = items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+
     setTotalItems(itemCount);
     setTotalPrice(price);
-    
+
     // Check for free delivery qualification
     const qualifies = price >= DELIVERY_THRESHOLD;
     setQualifiesForFreeDelivery(qualifies);
@@ -94,25 +94,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [items]);
 
   const addToCart = (product: Product) => {
-    setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.product.id === product.id);
-      
+    setItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.product.id === product.id);
       if (existingItem) {
-        // If product already in cart, increment quantity
-        return prevItems.map(item => 
-          item.product.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 } 
-            : item
+        return prevItems.map((item) =>
+          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
-        // Otherwise add new item with quantity 1
         return [...prevItems, { product, quantity: 1 }];
       }
     });
   };
 
   const removeFromCart = (productId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
+    setItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -120,12 +115,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeFromCart(productId);
       return;
     }
-    
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.product.id === productId 
-          ? { ...item, quantity } 
-          : item
+
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.product.id === productId ? { ...item, quantity } : item
       )
     );
   };
@@ -143,31 +136,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <CartContext.Provider value={{
-      items,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      isCartOpen,
-      openCart,
-      closeCart,
-      totalItems,
-      totalPrice,
-      qualifiesForFreeDelivery,
-      deliveryFee,
-      amountAwayFromFreeDelivery,
-      shippingAddress,
-      paymentMethod
-    }}>
+    <CartContext.Provider
+      value={{
+        items,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        isCartOpen,
+        openCart,
+        closeCart,
+        totalItems,
+        totalPrice,
+        qualifiesForFreeDelivery,
+        deliveryFee,
+        amountAwayFromFreeDelivery,
+        shippingAddress,
+        paymentMethod,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
 
-export const useCart = () => {
+export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
