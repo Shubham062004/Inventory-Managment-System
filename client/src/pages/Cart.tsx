@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,11 @@ import { ShoppingBag, ArrowLeft, Check, Plus, Minus, Trash2 } from 'lucide-react
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    items, 
-    updateQuantity, 
-    removeFromCart, 
+  const {
+    items,
+    setItems,
+    updateQuantity,
+    removeFromCart,
     clearCart,
     totalPrice,
     deliveryFee,
@@ -23,6 +24,22 @@ const Cart: React.FC = () => {
   } = useCart();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [cartInitialized, setCartInitialized] = useState(false);
+
+  // useEffect to trigger cart initialization (if needed)
+  useEffect(() => {
+    // Check if the cart is already initialized
+    if (!cartInitialized) {
+
+      const storedCart = localStorage.getItem('grocery-cart-items');
+      if (storedCart) {
+        setItems(JSON.parse(storedCart)); // Assuming you have a setItems function in your context
+      }
+
+      // After initializing, set cartInitialized to true
+      setCartInitialized(true);
+    }
+  }, [cartInitialized && setItems]);
 
   const handleOrderComplete = () => {
     if (!shippingAddress || !paymentMethod) {
@@ -31,7 +48,7 @@ const Cart: React.FC = () => {
     }
 
     setIsLoading(true);
-    
+
     const orderDetails = {
       id: `ORD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
       items,
@@ -54,7 +71,7 @@ const Cart: React.FC = () => {
     }, 1000);
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && cartInitialized) {
     return (
       <>
         <Header />
