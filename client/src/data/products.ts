@@ -27,7 +27,7 @@ export interface ProductDetails extends Product {
     sugar?: number;
     sodium?: number;
   };
-  ingredients?: string[];
+  ingredients?: string;
   description?: string;
   origin?: string;
   organic?: boolean;

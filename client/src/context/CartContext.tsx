@@ -10,7 +10,7 @@ export interface Product {
   description?: string;
   expiration?: string;
   ingredients?: string;
-  nutritionalInfo?: Record<string, string>;
+  nutritionalInfo?: Record<string, number>;
   dietaryInfo?: string;
   packagingInfo?: string;
   storageInstructions?: string;
