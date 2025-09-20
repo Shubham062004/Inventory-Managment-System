@@ -122,3 +122,13 @@ This application can be deployed to any static hosting service:
 ## License
 
 [MIT](LICENSE)
+
+<!-- Background image of index page -->
+
+<!-- 
+<div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                  <img 
+                    src="https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=80&w=1160&h=800" 
+                    alt="Fresh grocery products" 
+                    className="w-full h-auto object-cover"
+                  /> -->

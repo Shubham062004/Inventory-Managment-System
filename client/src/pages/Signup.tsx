@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -19,31 +18,53 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  // UPDATED FUNCTION - Replace the old handleSignup with this:
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Mock signup functionality
-    setTimeout(() => {
-      if (name && email && password) {
-        // Store user info in localStorage (in a real app, you'd use proper auth)
-        localStorage.setItem('user', JSON.stringify({ name, email, phone, role: 'customer' }));
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email, 
+          password,
+          name,
+          phone 
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
         
         toast({
           title: "Account created",
-          description: "Welcome to Balaji Store!",
+          description: data.message,
         });
         
         navigate('/');
       } else {
         toast({
           title: "Signup failed",
-          description: "Please fill all required fields.",
+          description: data.message,
           variant: "destructive"
         });
       }
-      setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Network error occurred",
+        variant: "destructive"
+      });
+    }
+    
+    setIsLoading(false);
   };
   
   const handleBackdropClick = () => {
@@ -52,14 +73,13 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background dark:bg-gray-900">
-      <Header />
       {/* Modal backdrop */}
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
         onClick={handleBackdropClick}
       ></div>
       
-      <main className="flex-grow flex items-center justify-center p-4 z-50 relative">
+      <main className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 z-50">
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -147,7 +167,6 @@ const Signup = () => {
           </Card>
         </motion.div>
       </main>
-      <Footer />
     </div>
   );
 };
