@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { apiService } from '@/services/api'; // Import API service
 
 const Login = () => {
   const { toast } = useToast();
@@ -16,48 +17,33 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // UPDATED FUNCTION - Replace the old handleLogin with this:
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await apiService.login(email, password);
       
-      const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('user', JSON.stringify(data.data.user));
+      if (response.success && response.data) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         
         toast({
           title: "Login successful",
-          description: data.message,
+          description: response.message,
         });
         
         navigate('/');
-      } else {
-        toast({
-          title: "Login failed",
-          description: data.message,
-          variant: "destructive"
-        });
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Network error occurred",
+        title: "Login failed",
+        description: error instanceof Error ? error.message : 'An error occurred during login',
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleBackdropClick = () => {
@@ -84,7 +70,7 @@ const Login = () => {
             <CardHeader className="space-y-1 text-center">
               <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
               <CardDescription>
-                Enter your credentials to access your account
+                Enter your credentials to sign in to your account
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -116,19 +102,19 @@ const Login = () => {
                       required
                     />
                   </div>
-                  <div className="text-sm text-right">
-                    <Link to="#" className="text-primary hover:text-primary/80">
-                      Forgot password?
-                    </Link>
-                  </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? "Signing in..." : (
+                    <>
+                      Sign in
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <div className="text-sm text-center text-muted-foreground w-full">
+            <CardFooter>
+              <div className="text-sm text-center w-full text-muted-foreground">
                 Don't have an account?{" "}
                 <Link to="/signup" className="text-primary hover:underline">
                   Sign up

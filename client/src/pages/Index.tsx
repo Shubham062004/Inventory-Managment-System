@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Hero from '@/components/home/Hero';
 import CategorySection from '@/components/home/CategorySection';
-import { allProducts } from '@/data/products';
+import { apiService, Product } from '@/services/api'; // Changed: Import API instead of local products
 import LocationSelector from '@/components/ui/LocationSelector';
 import FreeDeliveryBanner from '@/components/home/FreeDeliveryBanner';
 import ThemeToggle from '@/components/ui/ThemeToggle';
@@ -18,6 +17,10 @@ import ChatbotButton from '@/components/ui/ChatbotButton';
 const Index = () => {
   const [isLocationSelectorOpen, setIsLocationSelectorOpen] = useState(false);
   const [location, setLocation] = useState('Select Location');
+  
+  // Changed: Add state for products from API
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Use the scroll reveal animation
   useScrollReveal({ 
@@ -26,26 +29,45 @@ const Index = () => {
     rootMargin: '0px 0px -100px 0px'
   });
 
-  // Apply sequential animations to products
+  // Changed: Load products from backend API
   useEffect(() => {
-    applySequentialAnimations(
-      '.grid', 
-      '.food-card', 
-      'animate-fade-in', 
-      0.05
-    );
+    const loadProducts = async () => {
+      try {
+        const response = await apiService.getProducts();
+        setAllProducts(response.data);
+        console.log('✅ Products loaded for home page:', response.data.length);
+      } catch (error) {
+        console.error('❌ Failed to load products:', error);
+        setAllProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProducts();
   }, []);
 
-  // Group products by category
+  // Apply sequential animations to products
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      applySequentialAnimations(
+        '.grid', 
+        '.food-card', 
+        'animate-fade-in', 
+        0.05
+      );
+    }
+  }, [allProducts]); // Changed: Trigger animations when products load
+
+  // Group products by category (same logic as before)
   const productsByCategory = allProducts.reduce((acc, product) => {
     if (!acc[product.category]) {
       acc[product.category] = [];
     }
     acc[product.category].push(product);
     return acc;
-  }, {} as Record<string, typeof allProducts>);
+  }, {} as Record<string, Product[]>); // Changed: Use Product[] type
 
-  // Sort categories to show most popular first
+  // Sort categories to show most popular first (same as before)
   const sortedCategories = Object.keys(productsByCategory).sort((a, b) => {
     const popularOrder = ['Dairy', 'Bakery', 'Beverages', 'Snacks', 'Fruits', 'Vegetables'];
     const aIndex = popularOrder.indexOf(a);
@@ -70,6 +92,7 @@ const Index = () => {
             <div className="py-4 flex justify-between reveal reveal-from-right">
               <Link to="/support">
                 <Button variant="outline" className="flex items-center gap-2 dark:border-gray-700 dark:text-gray-300 hover:text-blink hover:border-blink hover:bg-blink/10 dark:hover:border-blink-400 dark:hover:text-blink-400 dark:hover:bg-blink-400/10 hover-scale">
+                  <MessageCircle className="h-4 w-4" />
                   <span>Customer Support</span>
                 </Button>
               </Link>
@@ -82,15 +105,23 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Display all categories */}
-          {sortedCategories.map((category) => (
-            <div key={category} className="reveal reveal-from-bottom">
-              <CategorySection 
-                title={category} 
-                products={productsByCategory[category]} 
-              />
+          {/* Changed: Add loading state */}
+          {isLoading ? (
+            <div className="container mx-auto px-4 text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-2 text-muted-foreground">Loading products...</p>
             </div>
-          ))}
+          ) : (
+            /* Display all categories (same as before) */
+            sortedCategories.map((category) => (
+              <div key={category} className="reveal reveal-from-bottom">
+                <CategorySection 
+                  title={category} 
+                  products={productsByCategory[category]} 
+                />
+              </div>
+            ))
+          )}
         </main>
         
         <Footer />

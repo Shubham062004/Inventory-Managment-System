@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -6,143 +5,156 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { allProducts, productCategories, ProductDetails } from '@/data/products';
 import ProductCard from '@/components/home/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { motion } from 'framer-motion';
+import { apiService, Product } from '@/services/api'; // Import from api service
 
 const Menu = () => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [products, setProducts] = useState<ProductDetails[]>([]);
-  const { items } = useCart(); // Add this to ensure cart state is available
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { items } = useCart();
 
-  // Load all products including custom ones
+  // Load products from backend
   useEffect(() => {
-    const customProducts = localStorage.getItem('custom-products');
-    if (customProducts) {
+    const loadProducts = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        const parsedCustomProducts = JSON.parse(customProducts);
-        setProducts([...allProducts, ...parsedCustomProducts]);
+        const response = await apiService.getProducts(
+          activeCategory !== 'All' ? activeCategory : undefined,
+          searchTerm || undefined
+        );
+        setProducts(response.data);
       } catch (error) {
-        console.error('Error parsing custom products:', error);
-        setProducts(allProducts);
+        console.error('Error loading products:', error);
+        setError('Failed to load products. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      setProducts(allProducts);
-    }
+    };
+
+    const debounceTimer = setTimeout(loadProducts, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm, activeCategory]);
+
+  // Load categories from backend
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await apiService.getCategories();
+        setCategories(['All', ...response.data]);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        // Fallback to default categories if backend fails
+        setCategories(['All', 'Dairy', 'Bakery', 'Grains', 'Fruits', 'Vegetables']);
+      }
+    };
+
+    loadCategories();
   }, []);
-
-  // Filter products based on search term and active category
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
-
-    return matchesSearch && matchesCategory;
-  });
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-    // Animation variants
-    const containerVariants = {
-      hidden: { opacity: 0 },
-      visible: { 
-        opacity: 1,
-        transition: { 
-          staggerChildren: 0.05
-        }
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
       }
-    };
-    
-    const itemVariants = {
-      hidden: { opacity: 0, y: 20 },
-      visible: { 
-        opacity: 1, 
-        y: 0,
-        transition: { type: 'spring', stiffness: 100 }
-      }
-    };
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: 'spring', stiffness: 100 }
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <Header />
+      <main className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Menu</h1>
+          <p className="text-muted-foreground">
+            Browse our complete product catalog and add items to your cart.
+          </p>
+        </div>
 
-      <main className="flex-grow pt-24 pb-10 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-display font-bold mb-4 text-[rgb(14,167,90)]">Menu</h1>
-            <p className="text-muted-foreground dark:text-gray-400 max-w-lg mx-auto">
-              Browse our complete product catalog and add items to your cart.
-            </p>
-          </div>
+        {/* Search bar */}
+        <div className="relative mb-6 max-w-md mx-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="pl-10"
+          />
+        </div>
 
-          {/* Search bar */}
-          <div className="relative mb-6 max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              type="search"
-              placeholder="Search products..."
-              className="pl-10 pr-4 py-2 placeholder:text-[rgb(14,167,90)]"
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-          </div>
-
-          {/* Category tabs */}
-          <Tabs
-            defaultValue="All"
-            value={activeCategory}
-            onValueChange={setActiveCategory}
-            className="mb-8"
-          >
-            <TabsList className="bg-muted overflow-x-auto flex w-full md:w-auto py-1 px-1 mb-4">
-              <TabsTrigger
-                key="All"
-                value="All"
-                className={`text-sm md:text-base whitespace-nowrap ${activeCategory === "All"
-                    ? "bg-[rgb(14,167,90)] text-white"
-                    : "text-[rgb(14,167,90)]"
-                  }`}
-              >
-                All
+        {/* Category tabs */}
+        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-8">
+          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : `grid-cols-${Math.min(categories.length, 6)}`}`}>
+            {categories.map(category => (
+              <TabsTrigger key={category} value={category}>
+                {category}
               </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
-              {productCategories.map(category => (
-                <TabsTrigger
-                  key={category}
-                  value={category}
-                  className={`text-sm md:text-base whitespace-nowrap ${activeCategory === category
-                      ? "bg-[rgb(14,167,90)] text-white"
-                      : "text-[rgb(14,167,90)]"
-                    }`}
-                >
-                  {category}
-                </TabsTrigger>
+        {/* Error state */}
+        {error && (
+          <div className="text-center py-8 text-red-500">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {/* Products grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="bg-gray-200 animate-pulse rounded-lg h-64"></div>
+            ))
+          ) : products.length > 0 ? (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="contents"
+            >
+              {products.map(product => (
+                <motion.div key={product.id} variants={itemVariants}>
+                  <ProductCard
+                    product={product}  
+                  />
+                </motion.div>
               ))}
-            </TabsList>
-
-            {/* Products grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10">
-                  <p className="text-lg text-muted-foreground">
-                    No products found matching "{searchTerm}"
-                  </p>
-                </div>
-              )}
+            </motion.div>
+          ) : !isLoading && (
+            <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">
+                {searchTerm ? `No products found matching "${searchTerm}"` : 'No products available'}
+              </p>
             </div>
-          </Tabs>
+          )}
         </div>
       </main>
-
       <Footer />
     </div>
   );
