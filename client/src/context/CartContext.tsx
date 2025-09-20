@@ -1,16 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Define specific types for nutritional info
+interface NutritionalInfo {
+  calories?: number;
+  protein?: number;
+  carbohydrates?: number;
+  fat?: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  [key: string]: string | number | undefined;
+}
+
 export interface Product {
-  id: string;
+  id: number; // Changed from string to number to match API
   name: string;
   price: number;
   image: string;
   category: string;
-  unit: string;
   description?: string;
+  stock?: number;
+  rating?: number;
+  reviews?: number;
+  unit?: string;
   expiration?: string;
   ingredients?: string;
-  nutritionalInfo?: Record<string, number>;
+  nutritionalInfo?: NutritionalInfo; // Fixed: No more 'any'
   dietaryInfo?: string;
   packagingInfo?: string;
   storageInstructions?: string;
@@ -25,8 +40,8 @@ interface CartContextType {
   items: CartItem[];
   setItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
   addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: number) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   openCart: () => void;
@@ -55,8 +70,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [qualifiesForFreeDelivery, setQualifiesForFreeDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(STANDARD_DELIVERY_FEE);
   const [amountAwayFromFreeDelivery, setAmountAwayFromFreeDelivery] = useState(DELIVERY_THRESHOLD);
-  const [shippingAddress, setShippingAddress] = useState('123 Main St, Mumbai, India');
-  const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
+  const [shippingAddress] = useState('123 Main St, Mumbai, India');
+  const [paymentMethod] = useState('Cash on Delivery');
 
   // Load cart from localStorage on initial mount
   useEffect(() => {
@@ -107,11 +122,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = (productId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;

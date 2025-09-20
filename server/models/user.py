@@ -6,7 +6,8 @@ import sys
 
 class User:
     def __init__(self, id=None, email=None, password=None, name=None, phone=None, role='customer'):
-        self.id = id
+        # Handle UUID properly - convert to string for consistency
+        self.id = str(id) if id else None
         self.email = email
         self.name = name
         self.phone = phone

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lock, Mail, User, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { apiService } from '@/services/api'; // Import API service
 
 const Signup = () => {
   const { toast } = useToast();
@@ -18,55 +19,35 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // UPDATED FUNCTION - Replace the old handleSignup with this:
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email, 
-          password,
-          name,
-          phone 
-        }),
-      });
+      const response = await apiService.signup(email, password, name, phone);
       
-      const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('user', JSON.stringify(data.data.user));
+      if (response.success && response.data) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         
         toast({
           title: "Account created",
-          description: data.message,
+          description: response.message,
         });
         
         navigate('/');
-      } else {
-        toast({
-          title: "Signup failed",
-          description: data.message,
-          variant: "destructive"
-        });
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Network error occurred",
+        title: "Signup failed",
+        description: error instanceof Error ? error.message : 'An error occurred during signup',
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
-  
+
   const handleBackdropClick = () => {
     navigate('/');
   };

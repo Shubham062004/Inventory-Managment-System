@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config import Config, DevelopmentConfig, ProductionConfig
 from routes.auth import auth_bp
+from routes.products import products_bp
+from routes.orders import orders_bp
 from models.supabase_client import supabase_service
 import os
 import sys
@@ -18,7 +20,7 @@ def create_app():
         handlers=[logging.StreamHandler(sys.stdout)]
     )
     
-    # Load configuration based on environment
+    # Load configuration
     if os.environ.get('FLASK_ENV') == 'production':
         app.config.from_object(ProductionConfig)
         print("🚀 PRODUCTION MODE ACTIVATED")
@@ -27,49 +29,62 @@ def create_app():
         print("🛠️ DEVELOPMENT MODE ACTIVATED")
     
     print(f"✅ Flask app created successfully")
-    print(f"📊 CORS Origins: {app.config['CORS_ORIGINS']}")
     
-    # Enhanced CORS configuration
+    # FIXED CORS CONFIGURATION - More explicit
     CORS(app, 
-         origins=app.config['CORS_ORIGINS'],
+         origins=['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8080', 'http://127.0.0.1:8080'],
          methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-         allow_headers=['Content-Type', 'Authorization'],
-         supports_credentials=True)
+         allow_headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Credentials'],
+         supports_credentials=True,
+         max_age=3600)
     
-    print("✅ CORS configured successfully")
+    print("✅ CORS configured with explicit settings")
     
-    # Log every request
+    # Handle preflight OPTIONS requests globally
+    @app.before_request
+    def handle_preflight():
+        if request.method == "OPTIONS":
+            print(f"🔄 PREFLIGHT REQUEST: {request.url}")
+            print(f"📍 Origin: {request.headers.get('Origin')}")
+            response = jsonify({'status': 'OK'})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+            response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+            response.headers.add('Access-Control-Max-Age', '3600')
+            return response, 200
+    
+    # Enhanced request logging
     @app.before_request
     def log_request_info():
-        print(f"\n🔄 === INCOMING REQUEST ===")
-        print(f"📍 Method: {request.method}")
-        print(f"🌐 URL: {request.url}")
-        print(f"📡 Origin: {request.headers.get('Origin', 'No Origin')}")
-        print(f"📋 Headers: {dict(request.headers)}")
-        if request.is_json and request.get_json():
-            print(f"📦 JSON Data: {request.get_json()}")
-        print(f"=== END REQUEST INFO ===\n")
-        sys.stdout.flush()
+        if request.method != 'OPTIONS':  # Don't spam logs with OPTIONS
+            print(f"\n🔄 === {request.method} REQUEST ===")
+            print(f"📍 URL: {request.url}")
+            print(f"📡 Origin: {request.headers.get('Origin', 'No Origin')}")
+            print(f"🔑 Headers: {dict(request.headers)}")
+            sys.stdout.flush()
     
-    # Log every response
+    # Enhanced response logging
     @app.after_request
     def log_response_info(response):
-        print(f"\n📤 === OUTGOING RESPONSE ===")
-        print(f"📊 Status Code: {response.status_code}")
-        print(f"📋 Headers: {dict(response.headers)}")
-        if response.is_json:
-            print(f"📦 JSON Response: {response.get_json()}")
-        print(f"=== END RESPONSE INFO ===\n")
+        if request.method != 'OPTIONS':  # Don't spam logs with OPTIONS
+            print(f"📤 RESPONSE: {response.status_code}")
+            print(f"📋 Response Headers: {dict(response.headers)}")
+            print(f"=== END REQUEST ===\n")
         sys.stdout.flush()
         return response
     
     # Register blueprints
     app.register_blueprint(auth_bp)
-    print("✅ Auth blueprint registered successfully")
+    app.register_blueprint(products_bp)
+    app.register_blueprint(orders_bp)
+    print("✅ All blueprints registered successfully")
     
-    # Health check endpoint with Supabase connection test
-    @app.route('/api/health', methods=['GET'])
+    # Health check endpoint with CORS
+    @app.route('/api/health', methods=['GET', 'OPTIONS'])
     def health_check():
+        if request.method == 'OPTIONS':
+            return '', 200
+            
         print("🏥 Health check endpoint called")
         try:
             print("🔍 Testing Supabase connection...")
@@ -86,19 +101,26 @@ def create_app():
             'message': 'Balaji Store Backend is running',
             'version': '1.0.0',
             'environment': os.environ.get('FLASK_ENV', 'development'),
-            'database': db_status
+            'database': db_status,
+            'cors': 'enabled',
+            'endpoints': {
+                'auth': '/api/auth/',
+                'products': '/api/products/',
+                'orders': '/api/orders/'
+            }
         }
         
         print(f"🏥 Health check response: {health_data}")
         return jsonify(health_data), 200
     
-    # Error handlers with CORS headers and logging
+    # Error handlers with CORS
     @app.errorhandler(404)
     def not_found(error):
         print(f"❌ 404 Error - Path not found: {request.url}")
         response = jsonify({
             'success': False,
-            'message': 'Endpoint not found'
+            'message': 'Endpoint not found',
+            'path': request.path
         })
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response, 404
@@ -119,15 +141,19 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    print("\n" + "="*50)
+    print("\n" + "="*60)
     print("🚀 STARTING BALAJI STORE BACKEND SERVER")
-    print("="*50)
+    print("="*60)
     
     port = int(os.environ.get('PORT', 5000))
     print(f"📡 Server will run on port: {port}")
     print(f"🌐 Access URL: http://localhost:{port}")
+    print(f"🌐 Alternative: http://127.0.0.1:{port}")
     print(f"🏥 Health check: http://localhost:{port}/api/health")
-    print("="*50 + "\n")
+    print(f"📦 Products API: http://localhost:{port}/api/products")
+    print(f"📂 Categories API: http://localhost:{port}/api/products/categories")
+    print(f"🛒 Orders API: http://localhost:{port}/api/orders")
+    print("="*60 + "\n")
     
     sys.stdout.flush()
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=True)
