@@ -115,7 +115,6 @@ yarn dev
 ## Deployment
 
 This application can be deployed to any static hosting service:
-
 - [Vercel](https://grocery-store-client-rose.vercel.app/)
 
 
